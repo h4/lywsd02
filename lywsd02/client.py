@@ -119,6 +119,8 @@ class Lywsd02Client:
             self._process_sensor_data(data)
         if handle == 0x37:
             self._process_history_data(data)
+        if handle == 0x4b:
+            self._process_sensor_data(data)
 
     def _subscribe(self, uuid):
         self._peripheral.setDelegate(self)
