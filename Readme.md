@@ -4,6 +4,25 @@
 
 **WORK IN PROGRESS**
 
+## Install
+
+1. Install it via [PyPI](https://pypi.org/project/lywsd02/):
+
+    ```
+    pip install lywsd02
+    ```
+
+    Note: use `pip3` instead of `pip` on Raspbian and other systems that default to Python 2.
+
+2. Or directly from the [source code](https://github.com/h4/lywsd02):
+
+    ```
+    git clone https://github.com/h4/lywsd02.git
+    python lywsd02/setup.py install
+    ```
+
+    Note: use `python3` if your system defaults to Python 2.
+
 ## Usage
 
 Instantiate client with Lywsd02 mac address
