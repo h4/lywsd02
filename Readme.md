@@ -25,9 +25,10 @@ print(client.humidity)
 ## Available properties
 
 * `client.temperature` – Sensor's temperature data in Celsius degrees. Updates with timeout (See below)
-* `client.humidity` – Sensor's humidity data in percents. Updates with timeout
+* `client.humidity` – Sensor's humidity data in percent. Updates with timeout
 * `client.units` – Current temperature units displayed on screen. Returns `'C'` for Celsius and `'F'` for Fahrenheit
 * `client.time` – Current time and timezone offset. Returns as tuple of `datetime.datetime` and `int`
+* `client.battery` – Sensor's battery level in percent (0 to 100).
 
 ## Available setters
 
