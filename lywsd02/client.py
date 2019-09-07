@@ -68,7 +68,7 @@ class Lywsd02Client:
     @with_connect
     def units(self, value):
         if value.upper() not in self.UNITS_CODES.keys():
-            raise ValueError(f'Units value must be one of {self.UNITS_CODES.keys()}')
+            raise ValueError('Units value must be one of %s' % self.UNITS_CODES.keys())
 
         ch = self._peripheral.getCharacteristics(uuid=UUID_UNITS)[0]
         ch.write(self.UNITS_CODES[value.upper()], withResponse=True)
