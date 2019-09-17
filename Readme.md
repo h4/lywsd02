@@ -4,6 +4,25 @@
 
 **WORK IN PROGRESS**
 
+## Install
+
+1. Install it via [PyPI](https://pypi.org/project/lywsd02/):
+
+    ```
+    pip install lywsd02
+    ```
+
+    Note: use `pip3` instead of `pip` on Raspbian and other systems that default to Python 2.
+
+2. Or directly from the [source code](https://github.com/h4/lywsd02):
+
+    ```
+    git clone https://github.com/h4/lywsd02.git
+    python lywsd02/setup.py install
+    ```
+
+    Note: use `python3` if your system defaults to Python 2.
+
 ## Usage
 
 Instantiate client with Lywsd02 mac address
@@ -25,9 +44,10 @@ print(client.humidity)
 ## Available properties
 
 * `client.temperature` – Sensor's temperature data in Celsius degrees. Updates with timeout (See below)
-* `client.humidity` – Sensor's humidity data in percents. Updates with timeout
+* `client.humidity` – Sensor's humidity data in percent. Updates with timeout
 * `client.units` – Current temperature units displayed on screen. Returns `'C'` for Celsius and `'F'` for Fahrenheit
 * `client.time` – Current time and timezone offset. Returns as tuple of `datetime.datetime` and `int`
+* `client.battery` – Sensor's battery level in percent (0 to 100).
 
 ## Available setters
 
