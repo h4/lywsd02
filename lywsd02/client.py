@@ -92,7 +92,7 @@ class Lywsd02Client:
     @time.setter
     @with_connect
     def time(self, dt: datetime):
-        tz_offset = time.localtime().tm_hour - time.gmtime().tm_hour
+        tz_offset = int(-time.timezone / 3600)
 
         data = struct.pack('Ib', int(dt.timestamp()), tz_offset)
         ch = self._peripheral.getCharacteristics(uuid=UUID_TIME)[0]
