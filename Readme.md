@@ -52,7 +52,8 @@ print(client.humidity)
 ## Available setters
 
 * `client.units = 'C'` – Changes temperature units displayed on screen
-* `client.time = datetime.datetime.now()` - Changes time. Changing timezone offset is not possible
+* `client.time = datetime.datetime.now()` - Changes time using local timezone or tz_offset (if set)
+* `client.tz_offset = 1` - Sets timezone offset in hours that will be used when setting time
 
 ## Configuration
 

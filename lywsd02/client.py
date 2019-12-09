@@ -31,6 +31,7 @@ class Lywsd02Client:
         self._peripheral = btle.Peripheral()
         self._notification_timeout = notification_timeout
         self._request_timeout = data_request_timeout
+        self._tz_offset = None
         self._temperature = None
         self._humidity = None
         self._last_request = None
@@ -92,11 +93,22 @@ class Lywsd02Client:
     @time.setter
     @with_connect
     def time(self, dt: datetime):
-        tz_offset = int(-time.timezone / 3600)
+        if self._tz_offset is not None:
+            tz_offset = self._tz_offset
+        else:
+            tz_offset = int(-time.timezone / 3600)
 
         data = struct.pack('Ib', int(dt.timestamp()), tz_offset)
         ch = self._peripheral.getCharacteristics(uuid=UUID_TIME)[0]
         ch.write(data, withResponse=True)
+
+    @property
+    def tz_offset(self):
+        return self._tz_offset
+
+    @tz_offset.setter
+    def tz_offset(self, tz_offset: int):
+        self._tz_offset = tz_offset
 
     @with_connect
     def _get_sensor_data(self):
