@@ -46,7 +46,7 @@ class Lywsd02Client:
 
     @temperature.setter
     def temperature(self, value):
-        self._temperature = struct.unpack('H', value)[0] / 100
+        self._temperature = struct.unpack('h', value)[0] / 100
 
     @property
     def humidity(self):
