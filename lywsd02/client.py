@@ -135,12 +135,16 @@ class Lywsd02Client:
                 break
 
     def handleNotification(self, handle, data):
-        if handle == 0x3c:
+        sensor_handles = [
+            0x36,  # LYWSD03MMC 1.0.0_0106
+            0x3c,
+            0x4b
+        ]
+
+        if handle in sensor_handles:
             self._process_sensor_data(data)
         if handle == 0x37:
             self._process_history_data(data)
-        if handle == 0x4b:
-            self._process_sensor_data(data)
 
     def _subscribe(self, uuid):
         self._peripheral.setDelegate(self)
