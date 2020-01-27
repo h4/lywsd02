@@ -13,7 +13,6 @@ UUID_UNITS = 'EBE0CCBE-7A0A-4B0C-8A1A-6FF2997DA3A6'     # 0x00 - F, 0x01 - C    
 UUID_HISTORY = 'EBE0CCBC-7A0A-4B0C-8A1A-6FF2997DA3A6'   # Last idx 152          READ NOTIFY
 UUID_TIME = 'EBE0CCB7-7A0A-4B0C-8A1A-6FF2997DA3A6'      # 5 bytes               READ WRITE
 UUID_DATA = 'EBE0CCC1-7A0A-4B0C-8A1A-6FF2997DA3A6'      # 3 bytes               READ NOTIFY
-UUID_BATTERY = 'EBE0CCC4-7A0A-4B0C-8A1A-6FF2997DA3A6'   # 1 byte                READ
 
 
 class Lywsd02Client:
@@ -78,7 +77,8 @@ class Lywsd02Client:
     @property
     @with_connect
     def battery(self):
-        ch = self._peripheral.getCharacteristics(uuid=UUID_BATTERY)[0]
+        ch = self._peripheral.getCharacteristics(
+            uuid=btle.AssignedNumbers.battery_level)[0]
         value = ch.read()
         return ord(value)
 
