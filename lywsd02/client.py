@@ -31,6 +31,7 @@ class Lywsd02Client:
         self._peripheral = btle.Peripheral()
         self._notification_timeout = notification_timeout
         self._request_timeout = data_request_timeout
+        self._handles = {}
         self._tz_offset = None
         self._temperature = None
         self._humidity = None
@@ -116,7 +117,7 @@ class Lywsd02Client:
         if self._last_request and now - self._last_request < self._request_timeout:
             return
 
-        self._subscribe(UUID_DATA)
+        self._subscribe(UUID_DATA, self._process_sensor_data)
 
         while True:
             if self._peripheral.waitForNotifications(self._notification_timeout):
@@ -125,7 +126,7 @@ class Lywsd02Client:
     @with_connect
     def get_history_data(self):
         data_received = False
-        self._subscribe(UUID_HISTORY)
+        self._subscribe(UUID_HISTORY, self._process_history_data)
 
         while True:
             if self._peripheral.waitForNotifications(self._notification_timeout):
@@ -135,20 +136,14 @@ class Lywsd02Client:
                 break
 
     def handleNotification(self, handle, data):
-        sensor_handles = [
-            0x36,  # LYWSD03MMC 1.0.0_0106
-            0x3c,
-            0x4b
-        ]
+        func = self._handles.get(handle)
+        if func:
+            func(data)
 
-        if handle in sensor_handles:
-            self._process_sensor_data(data)
-        if handle == 0x37:
-            self._process_history_data(data)
-
-    def _subscribe(self, uuid):
+    def _subscribe(self, uuid, callback):
         self._peripheral.setDelegate(self)
         ch = self._peripheral.getCharacteristics(uuid=uuid)[0]
+        self._handles[ch.getHandle()] = callback
         desc = ch.getDescriptors(forUUID=0x2902)[0]
 
         desc.write(0x01.to_bytes(2, byteorder="little"), withResponse=True)
