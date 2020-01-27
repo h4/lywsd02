@@ -11,7 +11,7 @@ _LOGGER = logging.getLogger(__name__)
 
 UUID_UNITS = 'EBE0CCBE-7A0A-4B0C-8A1A-6FF2997DA3A6'     # 0x00 - F, 0x01 - C    READ WRITE
 UUID_HISTORY = 'EBE0CCBC-7A0A-4B0C-8A1A-6FF2997DA3A6'   # Last idx 152          READ NOTIFY
-UUID_TIME = 'EBE0CCB7-7A0A-4B0C-8A1A-6FF2997DA3A6'      # 5 bytes               READ WRITE
+UUID_TIME = 'EBE0CCB7-7A0A-4B0C-8A1A-6FF2997DA3A6'      # 5 or 4 bytes          READ WRITE
 UUID_DATA = 'EBE0CCC1-7A0A-4B0C-8A1A-6FF2997DA3A6'      # 3 bytes               READ NOTIFY
 
 
@@ -87,8 +87,11 @@ class Lywsd02Client:
     def time(self):
         ch = self._peripheral.getCharacteristics(uuid=UUID_TIME)[0]
         value = ch.read()
-        ts = struct.unpack('I', value[:4])[0]
-        tz_offset = value[4]
+        if len(value) == 5:
+            ts, tz_offset = struct.unpack('Ib', value)
+        else:
+            ts = struct.unpack('I', value)[0]
+            tz_offset = 0
         return datetime.fromtimestamp(ts), tz_offset
 
     @time.setter
