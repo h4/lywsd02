@@ -1,3 +1,4 @@
+import collections
 import logging
 import struct
 import time
@@ -13,6 +14,11 @@ UUID_UNITS = 'EBE0CCBE-7A0A-4B0C-8A1A-6FF2997DA3A6'     # 0x00 - F, 0x01 - C    
 UUID_HISTORY = 'EBE0CCBC-7A0A-4B0C-8A1A-6FF2997DA3A6'   # Last idx 152          READ NOTIFY
 UUID_TIME = 'EBE0CCB7-7A0A-4B0C-8A1A-6FF2997DA3A6'      # 5 or 4 bytes          READ WRITE
 UUID_DATA = 'EBE0CCC1-7A0A-4B0C-8A1A-6FF2997DA3A6'      # 3 bytes               READ NOTIFY
+
+
+class SensorData(
+        collections.namedtuple('SensorDataBase', ['temperature', 'humidity'])):
+    __slots__ = ()
 
 
 class Lywsd02Client:
@@ -32,31 +38,21 @@ class Lywsd02Client:
         self._request_timeout = data_request_timeout
         self._handles = {}
         self._tz_offset = None
-        self._temperature = None
-        self._humidity = None
+        self._data = SensorData(None, None)
         self._last_request = None
-
-    @staticmethod
-    def parse_humidity(value):
-        return int(value)
 
     @property
     def temperature(self):
-        self._get_sensor_data()
-        return self._temperature
-
-    @temperature.setter
-    def temperature(self, value):
-        self._temperature = struct.unpack('h', value)[0] / 100
+        return self.data.temperature
 
     @property
     def humidity(self):
-        self._get_sensor_data()
-        return self._humidity
+        return self.data.humidity
 
-    @humidity.setter
-    def humidity(self, value):
-        self._humidity = value
+    @property
+    def data(self):
+        self._get_sensor_data()
+        return self._data
 
     @property
     @with_connect
@@ -149,16 +145,14 @@ class Lywsd02Client:
         self._handles[ch.getHandle()] = callback
         desc = ch.getDescriptors(forUUID=0x2902)[0]
 
-        desc.write(0x01.to_bytes(2, byteorder="little"), withResponse=True)
+        desc.write(bytes([0, 1]), withResponse=True)
 
     def _process_sensor_data(self, data):
-        temp_bytes = data[:2]
-        humid_bytes = data[2]
-
-        self.temperature = temp_bytes
-        self.humidity = humid_bytes
+        temperature, humidity = struct.unpack_from('HB', data)
+        temperature /= 100
 
         self._last_request = datetime.now().timestamp()
+        self._data = SensorData(temperature=temperature, humidity=humidity)
 
     def _process_history_data(self, data):
         # TODO: Process history data

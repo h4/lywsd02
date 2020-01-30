@@ -41,6 +41,14 @@ print(client.temperature)
 print(client.humidity)
 ```
 
+Read temperature as humidity from a single notification
+
+```python
+data = client.data
+print(data.temperature)
+print(data.humidity)
+```
+
 ## Available properties
 
 * `client.temperature` – Sensor's temperature data in Celsius degrees. Updates with timeout (See below)
@@ -59,7 +67,7 @@ print(client.humidity)
 
 Client may be initialized with additional kwargs.
 
-* `notification_timeout` – timeout to wait for `temperature` and `humidity` requests. If sensor responds slower 
+* `notification_timeout` – timeout to wait for `temperature` and `humidity` requests. If sensor responds slower
 then timeout data would not updated. Default value is 5 second.
 * `data_request_timeout` – `temperature` and `humidity` are cached for this period. Default value is 15 second.
 
