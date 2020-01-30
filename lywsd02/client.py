@@ -1,12 +1,11 @@
 import collections
+import contextlib
 import logging
 import struct
 import time
 from datetime import datetime
 
 from bluepy import btle
-
-from .decorators import with_connect
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -31,15 +30,30 @@ class Lywsd02Client:
         'F': b'\x01',
     }
 
-    def __init__(self, mac, notification_timeout=5.0, data_request_timeout=15.0):
+    def __init__(self, mac, notification_timeout=5.0):
         self._mac = mac
         self._peripheral = btle.Peripheral()
         self._notification_timeout = notification_timeout
-        self._request_timeout = data_request_timeout
         self._handles = {}
         self._tz_offset = None
         self._data = SensorData(None, None)
-        self._last_request = None
+        self._connected = False
+
+    @contextlib.contextmanager
+    def connect(self):
+        # Store connecion status
+        conn_status = self._connected
+        if not conn_status:
+            _LOGGER.debug('Connecting to %s', self._mac)
+            self._peripheral.connect(self._mac)
+            self._connected = True
+        try:
+            yield self
+        finally:
+            if not conn_status:
+                _LOGGER.debug('Disconnecting from %s', self._mac)
+                self._peripheral.disconnect()
+                self._connected = False
 
     @property
     def temperature(self):
@@ -55,34 +69,35 @@ class Lywsd02Client:
         return self._data
 
     @property
-    @with_connect
     def units(self):
-        ch = self._peripheral.getCharacteristics(uuid=UUID_UNITS)[0]
-        value = ch.read()
+        with self.connect():
+            ch = self._peripheral.getCharacteristics(uuid=UUID_UNITS)[0]
+            value = ch.read()
         return self.UNITS[value]
 
     @units.setter
-    @with_connect
     def units(self, value):
         if value.upper() not in self.UNITS_CODES.keys():
-            raise ValueError('Units value must be one of %s' % self.UNITS_CODES.keys())
+            raise ValueError(
+                'Units value must be one of %s' % self.UNITS_CODES.keys())
 
-        ch = self._peripheral.getCharacteristics(uuid=UUID_UNITS)[0]
-        ch.write(self.UNITS_CODES[value.upper()], withResponse=True)
+        with self.connect():
+            ch = self._peripheral.getCharacteristics(uuid=UUID_UNITS)[0]
+            ch.write(self.UNITS_CODES[value.upper()], withResponse=True)
 
     @property
-    @with_connect
     def battery(self):
-        ch = self._peripheral.getCharacteristics(
-            uuid=btle.AssignedNumbers.battery_level)[0]
-        value = ch.read()
+        with self.connect():
+            ch = self._peripheral.getCharacteristics(
+                uuid=btle.AssignedNumbers.battery_level)[0]
+            value = ch.read()
         return ord(value)
 
     @property
-    @with_connect
     def time(self):
-        ch = self._peripheral.getCharacteristics(uuid=UUID_TIME)[0]
-        value = ch.read()
+        with self.connect():
+            ch = self._peripheral.getCharacteristics(uuid=UUID_TIME)[0]
+            value = ch.read()
         if len(value) == 5:
             ts, tz_offset = struct.unpack('Ib', value)
         else:
@@ -91,7 +106,6 @@ class Lywsd02Client:
         return datetime.fromtimestamp(ts), tz_offset
 
     @time.setter
-    @with_connect
     def time(self, dt: datetime):
         if self._tz_offset is not None:
             tz_offset = self._tz_offset
@@ -99,8 +113,9 @@ class Lywsd02Client:
             tz_offset = int(-time.timezone / 3600)
 
         data = struct.pack('Ib', int(dt.timestamp()), tz_offset)
-        ch = self._peripheral.getCharacteristics(uuid=UUID_TIME)[0]
-        ch.write(data, withResponse=True)
+        with self.connect():
+            ch = self._peripheral.getCharacteristics(uuid=UUID_TIME)[0]
+            ch.write(data, withResponse=True)
 
     @property
     def tz_offset(self):
@@ -110,29 +125,24 @@ class Lywsd02Client:
     def tz_offset(self, tz_offset: int):
         self._tz_offset = tz_offset
 
-    @with_connect
+
     def _get_sensor_data(self):
-        now = datetime.now().timestamp()
-        if self._last_request and now - self._last_request < self._request_timeout:
-            return
+        with self.connect():
+            self._subscribe(UUID_DATA, self._process_sensor_data)
 
-        self._subscribe(UUID_DATA, self._process_sensor_data)
+            if not self._peripheral.waitForNotifications(
+                    self._notification_timeout):
+                raise TimeoutError('No data from device for {}'.format(
+                    self._notification_timeout))
 
-        while True:
-            if self._peripheral.waitForNotifications(self._notification_timeout):
-                break
-
-    @with_connect
     def get_history_data(self):
-        data_received = False
-        self._subscribe(UUID_HISTORY, self._process_history_data)
+        with self.connect():
+            self._subscribe(UUID_HISTORY, self._process_history_data)
 
-        while True:
-            if self._peripheral.waitForNotifications(self._notification_timeout):
-                data_received = True
-                continue
-            if data_received:
-                break
+            while True:
+                if not self._peripheral.waitForNotifications(
+                        self._notification_timeout):
+                    break
 
     def handleNotification(self, handle, data):
         func = self._handles.get(handle)
@@ -151,7 +161,6 @@ class Lywsd02Client:
         temperature, humidity = struct.unpack_from('HB', data)
         temperature /= 100
 
-        self._last_request = datetime.now().timestamp()
         self._data = SensorData(temperature=temperature, humidity=humidity)
 
     def _process_history_data(self, data):
