@@ -37,6 +37,7 @@ class Lywsd02Client:
         self._handles = {}
         self._tz_offset = None
         self._data = SensorData(None, None)
+        self._history_data = collections.OrderedDict()
         self._connected = False
 
     @contextlib.contextmanager
@@ -125,6 +126,10 @@ class Lywsd02Client:
     def tz_offset(self, tz_offset: int):
         self._tz_offset = tz_offset
 
+    @property
+    def history_data(self):
+        self.get_history_data()
+        return self._history_data
 
     def _get_sensor_data(self):
         with self.connect():
@@ -164,5 +169,9 @@ class Lywsd02Client:
         self._data = SensorData(temperature=temperature, humidity=humidity)
 
     def _process_history_data(self, data):
-        # TODO: Process history data
-        print(data)
+        (id, ts, max_temp, max_hum, min_temp, _, min_hum) = struct.unpack_from(
+            'IIHBBBB', data)
+        ts = datetime.fromtimestamp(ts)
+        max_temp /= 10
+        min_temp /= 10
+        self._history_data[id] = [ts, max_temp, max_hum, min_temp, min_hum]
