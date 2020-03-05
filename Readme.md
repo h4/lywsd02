@@ -34,11 +34,29 @@ mac = '3F:59:C8:80:70:BE'
 client = Lywsd02Client(mac)
 ```
 
-Read data
+Read data (each property will be fetched using new connection)
 
 ```python
 print(client.temperature)
 print(client.humidity)
+```
+
+Read temperature as humidity from a single notification
+
+```python
+data = client.data
+print(data.temperature)
+print(data.humidity)
+
+
+Read data (all data will be retrieved with a single connection)
+
+```python
+with client.connect():
+    data = client.data
+    print(data.temperature)
+    print(data.humidity)
+    print(client.battery)
 ```
 
 ## Available properties
@@ -59,9 +77,8 @@ print(client.humidity)
 
 Client may be initialized with additional kwargs.
 
-* `notification_timeout` – timeout to wait for `temperature` and `humidity` requests. If sensor responds slower 
+* `notification_timeout` – timeout to wait for `temperature` and `humidity` requests. If sensor responds slower
 then timeout data would not updated. Default value is 5 second.
-* `data_request_timeout` – `temperature` and `humidity` are cached for this period. Default value is 15 second.
 
 ```python
 from lywsd02 import Lywsd02Client
