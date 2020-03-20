@@ -160,7 +160,7 @@ class Lywsd02Client:
         self._handles[ch.getHandle()] = callback
         desc = ch.getDescriptors(forUUID=0x2902)[0]
 
-        desc.write(bytes([0, 1]), withResponse=True)
+        desc.write(0x01.to_bytes(2, byteorder="little"), withResponse=True)
 
     def _process_sensor_data(self, data):
         temperature, humidity = struct.unpack_from('HB', data)
