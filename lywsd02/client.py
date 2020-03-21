@@ -13,10 +13,11 @@ UUID_UNITS = 'EBE0CCBE-7A0A-4B0C-8A1A-6FF2997DA3A6'     # 0x00 - F, 0x01 - C    
 UUID_HISTORY = 'EBE0CCBC-7A0A-4B0C-8A1A-6FF2997DA3A6'   # Last idx 152          READ NOTIFY
 UUID_TIME = 'EBE0CCB7-7A0A-4B0C-8A1A-6FF2997DA3A6'      # 5 or 4 bytes          READ WRITE
 UUID_DATA = 'EBE0CCC1-7A0A-4B0C-8A1A-6FF2997DA3A6'      # 3 bytes               READ NOTIFY
+UUID_BATTERY = 'EBE0CCC4-7A0A-4B0C-8A1A-6FF2997DA3A6'
 
 
 class SensorData(
-        collections.namedtuple('SensorDataBase', ['temperature', 'humidity'])):
+    collections.namedtuple('SensorDataBase', ['temperature', 'humidity'])):
     __slots__ = ()
 
 
@@ -42,16 +43,14 @@ class Lywsd02Client:
 
     @contextlib.contextmanager
     def connect(self):
-        # Store connecion status
-        conn_status = self._connected
-        if not conn_status:
+        if not self._connected:
             _LOGGER.debug('Connecting to %s', self._mac)
             self._peripheral.connect(self._mac)
             self._connected = True
         try:
             yield self
         finally:
-            if not conn_status:
+            if self._connected:
                 _LOGGER.debug('Disconnecting from %s', self._mac)
                 self._peripheral.disconnect()
                 self._connected = False
@@ -89,8 +88,7 @@ class Lywsd02Client:
     @property
     def battery(self):
         with self.connect():
-            ch = self._peripheral.getCharacteristics(
-                uuid=btle.AssignedNumbers.battery_level)[0]
+            ch = self._peripheral.getCharacteristics(uuid=UUID_BATTERY)[0]
             value = ch.read()
         return ord(value)
 
@@ -128,7 +126,7 @@ class Lywsd02Client:
 
     @property
     def history_data(self):
-        self.get_history_data()
+        self._get_history_data()
         return self._history_data
 
     def _get_sensor_data(self):
@@ -137,10 +135,10 @@ class Lywsd02Client:
 
             if not self._peripheral.waitForNotifications(
                     self._notification_timeout):
-                raise TimeoutError('No data from device for {}'.format(
+                raise TimeoutError('No data from device for {} seconds'.format(
                     self._notification_timeout))
 
-    def get_history_data(self):
+    def _get_history_data(self):
         with self.connect():
             self._subscribe(UUID_HISTORY, self._process_history_data)
 
@@ -169,9 +167,9 @@ class Lywsd02Client:
         self._data = SensorData(temperature=temperature, humidity=humidity)
 
     def _process_history_data(self, data):
-        (id, ts, max_temp, max_hum, min_temp, _, min_hum) = struct.unpack_from(
+        (idx, ts, max_temp, max_hum, min_temp, _, min_hum) = struct.unpack_from(
             'IIHBBBB', data)
         ts = datetime.fromtimestamp(ts)
         max_temp /= 10
         min_temp /= 10
-        self._history_data[id] = [ts, max_temp, max_hum, min_temp, min_hum]
+        self._history_data[idx] = [ts, max_temp, max_hum, min_temp, min_hum]

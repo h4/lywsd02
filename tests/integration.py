@@ -8,4 +8,9 @@ client = Lywsd02Client(mac)
 
 if __name__ == '__main__':
     dt = datetime.datetime.now()
-    client.time = dt
+    with client.connect():
+        temperature = client.temperature
+        humidity = client.humidity
+        time = client.time[0]
+        battery = client.battery
+    print(battery)
