@@ -161,15 +161,20 @@ class Lywsd02Client:
         desc.write(0x01.to_bytes(2, byteorder="little"), withResponse=True)
 
     def _process_sensor_data(self, data):
-        temperature, humidity = struct.unpack_from('HB', data)
+        temperature, humidity = struct.unpack_from('hB', data)
         temperature /= 100
 
         self._data = SensorData(temperature=temperature, humidity=humidity)
 
     def _process_history_data(self, data):
-        (idx, ts, max_temp, max_hum, min_temp, _, min_hum) = struct.unpack_from(
-            'IIHBBBB', data)
+
+        # TODO unpacking with IIhBhB in one step doesn't work
+        (idx, ts) = struct.unpack_from('II', data[0:8])
+        (max_temp, max_hum) = struct.unpack_from('hB', data[8:11])
+        (min_temp, min_hum) = struct.unpack_from('hB', data[11:14])
+
         ts = datetime.fromtimestamp(ts)
-        max_temp /= 10
-        min_temp /= 10
-        self._history_data[idx] = [ts, max_temp, max_hum, min_temp, min_hum]
+        min_temp /= 100
+        max_temp /= 100
+
+        self._history_data[idx] = [ts, min_temp, min_hum, max_temp, max_hum]
