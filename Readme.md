@@ -66,6 +66,7 @@ with client.connect():
 * `client.units` – Current temperature units displayed on screen. Returns `'C'` for Celsius and `'F'` for Fahrenheit
 * `client.time` – Current time and timezone offset. Returns as tuple of `datetime.datetime` and `int`
 * `client.battery` – Sensor's battery level in percent (0 to 100).
+* `client.historic_data` – Ordered Dictionary of hourly minimum and maximum including timestamp for temperature and humidity
 
 ## Available setters
 
