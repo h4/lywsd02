@@ -108,6 +108,8 @@ class Lywsd02Client:
     def time(self, dt: datetime):
         if self._tz_offset is not None:
             tz_offset = self._tz_offset
+        elif time.daylight != 0:
+            tz_offset = int(-time.altzone / 3600)
         else:
             tz_offset = int(-time.timezone / 3600)
 
