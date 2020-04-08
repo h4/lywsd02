@@ -106,21 +106,19 @@ class Lywsd02Client:
 
     @time.setter
     def time(self, dt: datetime):
-        if self._tz_offset is not None:
-            tz_offset = self._tz_offset
-        elif time.daylight != 0:
-            tz_offset = int(-time.altzone / 3600)
-        else:
-            tz_offset = int(-time.timezone / 3600)
-
-        data = struct.pack('Ib', int(dt.timestamp()), tz_offset)
+        data = struct.pack('Ib', int(dt.timestamp()), self.tz_offset)
         with self.connect():
             ch = self._peripheral.getCharacteristics(uuid=UUID_TIME)[0]
             ch.write(data, withResponse=True)
 
     @property
     def tz_offset(self):
-        return self._tz_offset
+        if self._tz_offset is not None:
+            return self._tz_offset
+        elif time.daylight:
+            return -time.altzone // 3600
+        else:
+            return -time.timezone // 3600
 
     @tz_offset.setter
     def tz_offset(self, tz_offset: int):
