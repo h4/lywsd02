@@ -43,6 +43,8 @@ class Lywsd02Client:
 
     @contextlib.contextmanager
     def connect(self):
+        already_connected = self._connected
+
         if not self._connected:
             _LOGGER.debug('Connecting to %s', self._mac)
             self._peripheral.connect(self._mac)
@@ -50,7 +52,7 @@ class Lywsd02Client:
         try:
             yield self
         finally:
-            if self._connected:
+            if not already_connected and self._connected:
                 _LOGGER.debug('Disconnecting from %s', self._mac)
                 self._peripheral.disconnect()
                 self._connected = False
