@@ -9,15 +9,14 @@ from bluepy import btle
 
 _LOGGER = logging.getLogger(__name__)
 
-UUID_UNITS = 'EBE0CCBE-7A0A-4B0C-8A1A-6FF2997DA3A6'     # 0x00 - F, 0x01 - C    READ WRITE
-UUID_HISTORY = 'EBE0CCBC-7A0A-4B0C-8A1A-6FF2997DA3A6'   # Last idx 152          READ NOTIFY
-UUID_TIME = 'EBE0CCB7-7A0A-4B0C-8A1A-6FF2997DA3A6'      # 5 or 4 bytes          READ WRITE
-UUID_DATA = 'EBE0CCC1-7A0A-4B0C-8A1A-6FF2997DA3A6'      # 3 bytes               READ NOTIFY
+UUID_UNITS = 'EBE0CCBE-7A0A-4B0C-8A1A-6FF2997DA3A6'  # 0x00 - F, 0x01 - C    READ WRITE
+UUID_HISTORY = 'EBE0CCBC-7A0A-4B0C-8A1A-6FF2997DA3A6'  # Last idx 152          READ NOTIFY
+UUID_TIME = 'EBE0CCB7-7A0A-4B0C-8A1A-6FF2997DA3A6'  # 5 or 4 bytes          READ WRITE
+UUID_DATA = 'EBE0CCC1-7A0A-4B0C-8A1A-6FF2997DA3A6'  # 3 bytes               READ NOTIFY
 UUID_BATTERY = 'EBE0CCC4-7A0A-4B0C-8A1A-6FF2997DA3A6'
 
 
-class SensorData(
-    collections.namedtuple('SensorDataBase', ['temperature', 'humidity'])):
+class SensorData(collections.namedtuple('SensorDataBase', ['temperature', 'humidity'])):
     __slots__ = ()
 
 
@@ -39,21 +38,21 @@ class Lywsd02Client:
         self._tz_offset = None
         self._data = SensorData(None, None)
         self._history_data = collections.OrderedDict()
-        self._connected = False
+        self._context_depth = 0
 
     @contextlib.contextmanager
     def connect(self):
-        if not self._connected:
+        if self._context_depth == 0:
             _LOGGER.debug('Connecting to %s', self._mac)
             self._peripheral.connect(self._mac)
-            self._connected = True
+        self._context_depth += 1
         try:
             yield self
         finally:
-            if self._connected:
+            self._context_depth -= 1
+            if self._context_depth == 0:
                 _LOGGER.debug('Disconnecting from %s', self._mac)
                 self._peripheral.disconnect()
-                self._connected = False
 
     @property
     def temperature(self):
