@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-VERSION = '0.0.7'
+VERSION = '0.0.8'
 
 setup(
     name='lywsd02',
