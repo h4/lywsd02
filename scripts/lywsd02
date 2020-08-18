@@ -1,6 +1,7 @@
 #!python
 
 import argparse
+from datetime import datetime
 import lywsd02
 
 parser = argparse.ArgumentParser()
@@ -13,7 +14,7 @@ for mac in args.mac:
 		client = lywsd02.Lywsd02Client(mac)
 		if args.action == 'sync':
 			print('Synchronizing time of {}'.format(mac))
-			client.time = datetime.datetime.now()
+			client.time = datetime.now()
 		elif args.action == 'read':
 			print('Fetching data from {}'.format(mac))
 			data = client.data
