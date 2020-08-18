@@ -23,7 +23,7 @@
 
     Note: use `python3` if your system defaults to Python 2.
 
-## Usage
+## Usage (library)
 
 Instantiate client with Lywsd02 mac address
 
@@ -58,6 +58,21 @@ with client.connect():
     print(data.humidity)
     print(client.battery)
 ```
+
+## Usage (helper script)
+
+This library also installs a simple command-line utility called `lywsd02`.
+
+It allows to synchronize time and read data from devices:
+
+```bash
+lywsd02 sync 3F:59:C8:80:70:BE
+lywsd02 read 3F:59:C8:80:70:BE 3F:59:C8:80:70:BF
+```
+
+Consult `lywsd02 -h` to get information on all possible actions.
+
+Note that you may need to replace `lywsd02` with `~/.local/bin/lywsd02` or some other path, depending on your installation settings.
 
 ## Available properties
 

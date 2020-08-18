@@ -13,6 +13,7 @@ setup(
         'Programming Language :: Python :: 3.7',
     ],
     install_requires=['bluepy==1.3.0'],
+    scripts=['scripts/lywsd02'],
     author_email='mikhail.baranov@gmail.com',
     description='Lywsd02 BLE sendor Library',
     long_description_content_type='text/x-rst',
