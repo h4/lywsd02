@@ -5,6 +5,17 @@
 **WORK IN PROGRESS**
 
 ## Install
+0. Install glib2 library
+    ```shell
+    # On RedHat/CentOS/Fedora:
+    dnf install glib2-devel
+
+    # On Ubuntu/Debian:
+    apt install libglib2.0-dev
+
+    # On Alpine:
+    apk add glib-dev
+    ```
 
 1. Install it via [PyPI](https://pypi.org/project/lywsd02/):
 
