@@ -5,17 +5,6 @@
 **WORK IN PROGRESS**
 
 ## Install
-0. Install glib2 library
-    ```shell
-    # On RedHat/CentOS/Fedora:
-    dnf install glib2-devel
-
-    # On Ubuntu/Debian:
-    apt install libglib2.0-dev
-
-    # On Alpine:
-    apk add glib-dev
-    ```
 
 1. Install it via [PyPI](https://pypi.org/project/lywsd02/):
 
@@ -112,4 +101,27 @@ from lywsd02 import Lywsd02Client
 
 mac = '3F:59:C8:80:70:BE'
 client = Lywsd02Client(mac, notification_timeout=1.0, data_request_timeout=30.0)
+```
+
+## Troubleshooting
+
+### Can't install the package form pip
+
+Error:
+
+```
+ERROR: Command errored out with exit status 1: /usr/bin/python3 -u -c 'import sys, setuptools, tokenize; sys.argv[0] = '"'"'/tmp/pip-install-m1_xzdf5/bluepy/setup.py'"'"'; __file__='"'"'/tmp/pip-install-m1_xzdf5/bluepy/setup.py'"'"';f=getattr(tokenize, '"'"'open'"'"', open)(__file__);code=f.read().replace('"'"'\r\n'"'"', '"'"'\n'"'"');f.close();exec(compile(code, __file__, '"'"'exec'"'"'))' install --record /tmp/pip-record-00nadffm/install-record.txt --single-version-externally-managed --compile Check the logs for full command output.
+```
+
+Fix: Install glib2 library
+
+```shell
+# On RedHat/CentOS/Fedora:
+dnf install glib2-devel
+
+# On Ubuntu/Debian:
+apt install libglib2.0-dev
+
+# On Alpine:
+apk add glib-dev
 ```
