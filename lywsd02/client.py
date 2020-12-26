@@ -166,11 +166,7 @@ class Lywsd02Client:
         self._data = SensorData(temperature=temperature, humidity=humidity)
 
     def _process_history_data(self, data):
-
-        # TODO unpacking with IIhBhB in one step doesn't work
-        (idx, ts) = struct.unpack_from('II', data[0:8])
-        (max_temp, max_hum) = struct.unpack_from('hB', data[8:11])
-        (min_temp, min_hum) = struct.unpack_from('hB', data[11:14])
+        (idx, ts, max_temp, max_hum, min_temp, min_hum) = struct.unpack_from('<IIhBhB', data)
 
         ts = datetime.fromtimestamp(ts)
         min_temp /= 100
