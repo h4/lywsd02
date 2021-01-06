@@ -47,7 +47,7 @@ Read temperature as humidity from a single notification
 data = client.data
 print(data.temperature)
 print(data.humidity)
-
+```
 
 Read data (all data will be retrieved with a single connection)
 
@@ -58,6 +58,16 @@ with client.connect():
     print(data.humidity)
     print(client.battery)
 ```
+
+Read the 10 most recent entries only
+
+```python
+with client.connect():
+    total_records, current_records = client.num_stored_entries
+    client.history_index = total_records - 10 + 1
+    data = client.history_data
+```
+
 
 ## Usage (helper script)
 
@@ -81,13 +91,16 @@ Note that you may need to replace `lywsd02` with `~/.local/bin/lywsd02` or some 
 * `client.units` – Current temperature units displayed on screen. Returns `'C'` for Celsius and `'F'` for Fahrenheit
 * `client.time` – Current time and timezone offset. Returns as tuple of `datetime.datetime` and `int`
 * `client.battery` – Sensor's battery level in percent (0 to 100).
-* `client.historic_data` – Ordered Dictionary of hourly minimum and maximum including timestamp for temperature and humidity
+* `client.history_data` – Ordered Dictionary of hourly minimum and maximum including timestamp for temperature and humidity
+* `client.num_stored_entries` - A tuple describing the `history_data` property. It holds the number of total records saved and currently stored records 
+* `client.history_index` - Index where the `history_data` collection should be read from 
 
 ## Available setters
 
 * `client.units = 'C'` – Changes temperature units displayed on screen
 * `client.time = datetime.datetime.now()` - Changes time using local timezone or tz_offset (if set)
 * `client.tz_offset = 1` - Sets timezone offset in hours that will be used when setting time
+* `client.history_index = total_records - 9` - Sets an index so that `history_data` will be updated with the ten most recent entries
 
 ## Configuration
 
