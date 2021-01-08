@@ -9,11 +9,13 @@ from bluepy import btle
 
 _LOGGER = logging.getLogger(__name__)
 
-UUID_UNITS = 'EBE0CCBE-7A0A-4B0C-8A1A-6FF2997DA3A6'  # 0x00 - F, 0x01 - C    READ WRITE
-UUID_HISTORY = 'EBE0CCBC-7A0A-4B0C-8A1A-6FF2997DA3A6'  # Last idx 152          READ NOTIFY
-UUID_TIME = 'EBE0CCB7-7A0A-4B0C-8A1A-6FF2997DA3A6'  # 5 or 4 bytes          READ WRITE
-UUID_DATA = 'EBE0CCC1-7A0A-4B0C-8A1A-6FF2997DA3A6'  # 3 bytes               READ NOTIFY
-UUID_BATTERY = 'EBE0CCC4-7A0A-4B0C-8A1A-6FF2997DA3A6'
+UUID_UNITS = 'EBE0CCBE-7A0A-4B0C-8A1A-6FF2997DA3A6'        # 0x00 - F, 0x01 - C    READ WRITE
+UUID_HISTORY = 'EBE0CCBC-7A0A-4B0C-8A1A-6FF2997DA3A6'      # Last idx 152          READ NOTIFY
+UUID_TIME = 'EBE0CCB7-7A0A-4B0C-8A1A-6FF2997DA3A6'         # 5 or 4 bytes          READ WRITE
+UUID_DATA = 'EBE0CCC1-7A0A-4B0C-8A1A-6FF2997DA3A6'         # 3 bytes               READ NOTIFY
+UUID_BATTERY = 'EBE0CCC4-7A0A-4B0C-8A1A-6FF2997DA3A6'      # 1 byte                READ
+UUID_NUM_RECORDS = 'EBE0CCB9-7A0A-4B0C-8A1A-6FF2997DA3A6'  # 8 bytes               READ
+UUID_RECORD_IDX = 'EBE0CCBA-7A0A-4B0C-8A1A-6FF2997DA3A6'   # 4 bytes               READ WRITE
 
 
 class SensorData(collections.namedtuple('SensorDataBase', ['temperature', 'humidity'])):
@@ -122,6 +124,28 @@ class Lywsd02Client:
     @tz_offset.setter
     def tz_offset(self, tz_offset: int):
         self._tz_offset = tz_offset
+
+    @property
+    def history_index(self):
+        with self.connect():
+            ch = self._peripheral.getCharacteristics(uuid=UUID_RECORD_IDX)[0]
+            value = ch.read()
+        _idx = 0 if len(value) == 0 else struct.unpack_from('I', value)
+        return _idx
+
+    @history_index.setter
+    def history_index(self, value):
+        with self.connect():
+            ch = self._peripheral.getCharacteristics(uuid=UUID_RECORD_IDX)[0]
+            ch.write(struct.pack('I', value), withResponse=True)
+
+    @property
+    def num_stored_entries(self):
+        with self.connect():
+            ch = self._peripheral.getCharacteristics(uuid=UUID_NUM_RECORDS)[0]
+            value = ch.read()
+        total_records, current_records = struct.unpack_from('II', value)
+        return total_records, current_records
 
     @property
     def history_data(self):
