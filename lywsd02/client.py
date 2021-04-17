@@ -18,7 +18,7 @@ UUID_NUM_RECORDS = 'EBE0CCB9-7A0A-4B0C-8A1A-6FF2997DA3A6'  # 8 bytes            
 UUID_RECORD_IDX = 'EBE0CCBA-7A0A-4B0C-8A1A-6FF2997DA3A6'   # 4 bytes               READ WRITE
 
 
-class SensorData(collections.namedtuple('SensorDataBase', ['temperature', 'humidity'])):
+class SensorData(collections.namedtuple('SensorDataBase', ['temperature', 'humidity', 'voltage', 'batteryLevel'])):
     __slots__ = ()
 
 
@@ -38,7 +38,7 @@ class Lywsd02Client:
         self._notification_timeout = notification_timeout
         self._handles = {}
         self._tz_offset = None
-        self._data = SensorData(None, None)
+        self._data = SensorData(None, None, None, None)
         self._history_data = collections.OrderedDict()
         self._context_depth = 0
 
@@ -63,6 +63,14 @@ class Lywsd02Client:
     @property
     def humidity(self):
         return self.data.humidity
+
+    @property
+    def voltage(self):
+        return self.data.voltage
+
+    @property
+    def batteryLevel(self):
+        return self.data.batteryLevel
 
     @property
     def data(self):
@@ -184,10 +192,13 @@ class Lywsd02Client:
         desc.write(0x01.to_bytes(2, byteorder="little"), withResponse=True)
 
     def _process_sensor_data(self, data):
-        temperature, humidity = struct.unpack_from('hB', data)
+        temperature, humidity, voltage = struct.unpack_from('<hBh', data)
         temperature /= 100
+        voltage /= 1000
 
-        self._data = SensorData(temperature=temperature, humidity=humidity)
+        batteryLevel = min(int(round((voltage - 2.1),2) * 100), 100)
+
+        self._data = SensorData(temperature=temperature, humidity=humidity, voltage=voltage, batteryLevel=batteryLevel)
 
     def _process_history_data(self, data):
         (idx, ts, max_temp, max_hum, min_temp, min_hum) = struct.unpack_from('<IIhBhB', data)
