@@ -1,1 +1,2 @@
-bluepy==1.3.0
+-i https://pypi.org/simple/
+bluepy==1.3.0 ; sys_platform == 'linux'
