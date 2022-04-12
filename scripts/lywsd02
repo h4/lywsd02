@@ -7,11 +7,12 @@ import lywsd02
 parser = argparse.ArgumentParser()
 parser.add_argument('action', help='Action to perform, either: sync - synchronize time with this machine, read - read current values from device, setc/setf - set temperature unit on display to Celsius/Fahrenheit', choices=['sync', 'read', 'setc', 'setf'])
 parser.add_argument('mac', help='MAC address of LYWSD02 device', nargs='+')
+parser.add_argument('-i', '--iface', help='Interface of the bluetooth device (e.g. hci1)', nargs='?')
 args = parser.parse_args()
 
 for mac in args.mac:
 	try:
-		client = lywsd02.Lywsd02Client(mac)
+		client = lywsd02.Lywsd02Client(mac, iface=args.iface)
 		if args.action == 'sync':
 			print('Synchronizing time of {}'.format(mac))
 			client.time = datetime.now()
