@@ -32,7 +32,8 @@ class Lywsd02Client:
         'F': b'\x01',
     }
 
-    def __init__(self, mac, notification_timeout=5.0):
+    def __init__(self, mac, notification_timeout=5.0, iface=None):
+        self._iface = iface
         self._mac = mac
         self._peripheral = btle.Peripheral()
         self._notification_timeout = notification_timeout
@@ -46,7 +47,7 @@ class Lywsd02Client:
     def connect(self):
         if self._context_depth == 0:
             _LOGGER.debug('Connecting to %s', self._mac)
-            self._peripheral.connect(self._mac)
+            self._peripheral.connect(self._mac, iface=self._iface)
         self._context_depth += 1
         try:
             yield self
